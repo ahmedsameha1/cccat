@@ -16,7 +16,7 @@ let
     val fileName = case CommandLine.arguments () of
         [arg] => arg
         | _ => raise NoArgs
-    val stream = TextIO.openIn fileName
+    val stream = if fileName = "-" then TextIO.stdIn else TextIO.openIn fileName
 in
     app(stream)
 end

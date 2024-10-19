@@ -64,4 +64,28 @@ func TestCccat(t *testing.T) {
 `,
 			out.String())
 	})
+
+	t.Run("Print from the standard in 1", func(t *testing.T) {
+		var out strings.Builder
+		var errOut strings.Builder
+		ccomand := exec.Command("bash", "-c", "head -n1 hi.txt | ./cccat -")
+		ccomand.Dir = "./.."
+		ccomand.Stderr = &errOut
+		ccomand.Stdout = &out
+		err := ccomand.Run()
+		assert.NoError(t, err)
+		assert.Equal(t, "hi\n", out.String())
+	})
+
+	t.Run("Print from the standard in 2", func(t *testing.T) {
+		var out strings.Builder
+		var errOut strings.Builder
+		ccomand := exec.Command("bash", "-c", "head -n1 quotes.txt | ./cccat -")
+		ccomand.Dir = "./.."
+		ccomand.Stderr = &errOut
+		ccomand.Stdout = &out
+		err := ccomand.Run()
+		assert.NoError(t, err)
+		assert.Equal(t, "\"Your heart is the size of an ocean. Go find yourself in its hidden depths.\"\n", out.String())
+	})
 }
