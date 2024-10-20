@@ -13,11 +13,11 @@ fun app(stream) =
 fun main () =
 
 let
-    val fileName = case CommandLine.arguments () of
-        [arg] => arg
-        | _ => raise NoArgs
-    val stream = if fileName = "-" then TextIO.stdIn else TextIO.openIn fileName
+    val arguments = case CommandLine.arguments () of
+        [] => raise NoArgs
+        | args => args
+    val streams = List.map (fn (x) => if x = "-" then TextIO.stdIn else TextIO.openIn x) arguments
 in
-    app(stream)
+    List.app app streams
 end
 val _ = main ();
