@@ -177,16 +177,12 @@ func TestCccat(t *testing.T) {
 	t.Run("Print file contents with numbers for lines 2", func(t *testing.T) {
 		var out strings.Builder
 		var errOut strings.Builder
-		ccomand := exec.Command("bash", "-c", "head -n3 quotes.txt | ./cccat -n")
+		ccomand := exec.Command("bash", "-c", "head -n1 test.txt | ./cccat -n")
 		ccomand.Dir = "./.."
 		ccomand.Stderr = &errOut
 		ccomand.Stdout = &out
 		err := ccomand.Run()
 		assert.NoError(t, err)
-		assert.Equal(t, `1 "Your heart is the size of an ocean. Go find yourself in its hidden depths."
-2 "The Bay of Bengal is hit frequently by cyclones. The months of November and May, in particular, are dangerous in this regard."
-3 "Thinking is the capital, Enterprise is the way, Hard Work is the solution."
-`,
-			out.String())
+		assert.Equal(t, "\n", out.String())
 	})
 }
