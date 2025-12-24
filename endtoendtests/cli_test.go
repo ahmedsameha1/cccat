@@ -44,6 +44,18 @@ func TestCccat(t *testing.T) {
 	t.Run("Print file contents 2", func(t *testing.T) {
 		var out strings.Builder
 		var errOut strings.Builder
+		ccomand := exec.Command("./cccat", "hi_jp.txt")
+		ccomand.Dir = "./.."
+		ccomand.Stderr = &errOut
+		ccomand.Stdout = &out
+		err := ccomand.Run()
+		assert.NoError(t, err)
+		assert.Equal(t, "こんにちは\n幸運を", out.String())
+	})
+
+	t.Run("Print file contents 3", func(t *testing.T) {
+		var out strings.Builder
+		var errOut strings.Builder
 		ccomand := exec.Command("./cccat", "quotes.txt")
 		ccomand.Dir = "./.."
 		ccomand.Stderr = &errOut
@@ -80,6 +92,18 @@ func TestCccat(t *testing.T) {
 	t.Run("Print from the standard in 2", func(t *testing.T) {
 		var out strings.Builder
 		var errOut strings.Builder
+		ccomand := exec.Command("bash", "-c", "head -n1 hi_jp.txt | ./cccat -")
+		ccomand.Dir = "./.."
+		ccomand.Stderr = &errOut
+		ccomand.Stdout = &out
+		err := ccomand.Run()
+		assert.NoError(t, err)
+		assert.Equal(t, "こんにちは\n", out.String())
+	})
+
+	t.Run("Print from the standard in 3", func(t *testing.T) {
+		var out strings.Builder
+		var errOut strings.Builder
 		ccomand := exec.Command("bash", "-c", "head -n1 quotes.txt | ./cccat -")
 		ccomand.Dir = "./.."
 		ccomand.Stderr = &errOut
@@ -89,7 +113,7 @@ func TestCccat(t *testing.T) {
 		assert.Equal(t, "\"Your heart is the size of an ocean. Go find yourself in its hidden depths.\"\n", out.String())
 	})
 
-	t.Run("Print from the standard in 3", func(t *testing.T) {
+	t.Run("Print from the standard in 4", func(t *testing.T) {
 		var out strings.Builder
 		var errOut strings.Builder
 		ccomand := exec.Command("bash", "-c", "head -n1 quotes.txt | ./cccat")
@@ -114,6 +138,18 @@ func TestCccat(t *testing.T) {
 	})
 
 	t.Run("Print files contents concatenated 2", func(t *testing.T) {
+		var out strings.Builder
+		var errOut strings.Builder
+		ccomand := exec.Command("./cccat", "hi_jp.txt", "hello.txt")
+		ccomand.Dir = "./.."
+		ccomand.Stderr = &errOut
+		ccomand.Stdout = &out
+		err := ccomand.Run()
+		assert.NoError(t, err)
+		assert.Equal(t, "こんにちは\n幸運をhello\nhi", out.String())
+	})
+
+	t.Run("Print files contents concatenated 3", func(t *testing.T) {
 		var out strings.Builder
 		var errOut strings.Builder
 		ccomand := exec.Command("./cccat", "quotes.txt", "quotes2.txt")
@@ -145,7 +181,7 @@ func TestCccat(t *testing.T) {
 `, out.String())
 	})
 
-	t.Run("Print files contents concatenated 3", func(t *testing.T) {
+	t.Run("Print files contents concatenated 4", func(t *testing.T) {
 		var out strings.Builder
 		var errOut strings.Builder
 		ccomand := exec.Command("bash", "-c", "head -n1 quotes.txt | ./cccat hi.txt - hello.txt")
@@ -155,6 +191,19 @@ func TestCccat(t *testing.T) {
 		err := ccomand.Run()
 		assert.NoError(t, err)
 		assert.Equal(t, "hi\nhello\"Your heart is the size of an ocean. Go find yourself in its hidden depths.\"\nhello\nhi",
+			out.String())
+	})
+	
+	t.Run("Print files contents concatenated 5", func(t *testing.T) {
+		var out strings.Builder
+		var errOut strings.Builder
+		ccomand := exec.Command("bash", "-c", "head -n1 quotes.txt | ./cccat hi.txt - hi_jp.txt")
+		ccomand.Dir = "./.."
+		ccomand.Stderr = &errOut
+		ccomand.Stdout = &out
+		err := ccomand.Run()
+		assert.NoError(t, err)
+		assert.Equal(t, "hi\nhello\"Your heart is the size of an ocean. Go find yourself in its hidden depths.\"\nこんにちは\n幸運を",
 			out.String())
 	})
 
