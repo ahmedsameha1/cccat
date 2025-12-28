@@ -76,7 +76,3 @@ go test ./...
 ├── *.txt               # Sample text files used for testing.
 └── README.md
 ```
-
-## ⚠️ Known Issues
-
-* **Line Numbering:** The line numbering flags (`-n`, `-b`) currently behave incorrectly when using this command with multiple files.

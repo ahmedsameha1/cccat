@@ -232,7 +232,7 @@ func TestCccat(t *testing.T) {
 		ccomand.Stdout = &out
 		err := ccomand.Run()
 		assert.NoError(t, err)
-		assert.Equal(t, "\n", out.String())
+		assert.Equal(t, "", out.String())
 	})
 
 	t.Run("Print file contents with numbers for non-empty lines 1", func(t *testing.T) {
@@ -320,5 +320,51 @@ func TestCccat(t *testing.T) {
 10 "These Capitalists Generally Act Harmoniously And In Concert, To Fleece The People."
 `,
 			out.String())
+	})
+
+	t.Run("Print files contents concatenated with numbers for lines 1", func(t *testing.T) {
+		var out strings.Builder
+		var errOut strings.Builder
+		ccomand := exec.Command("bash", "-c", "head -n1 quotes.txt | ./cccat -n hi.txt - hello.txt")
+		ccomand.Dir = "./.."
+		ccomand.Stderr = &errOut
+		ccomand.Stdout = &out
+		err := ccomand.Run()
+		assert.NoError(t, err)
+		assert.Equal(t, `1 hi
+2 hello"Your heart is the size of an ocean. Go find yourself in its hidden depths."
+3 hello
+4 hi`,
+			out.String())
+	})
+
+	t.Run("Print files contents concatenated with numbers for lines 2", func(t *testing.T) {
+		var out strings.Builder
+		var errOut strings.Builder
+		ccomand := exec.Command("bash", "-c", "head -n1 quotes.txt | ./cccat -b quotes_emptylines.txt - hello.txt")
+		ccomand.Dir = "./.."
+		ccomand.Stderr = &errOut
+		ccomand.Stdout = &out
+		err := ccomand.Run()
+		assert.NoError(t, err)
+		assert.Equal(t, `1 "Your heart is the size of an ocean. Go find yourself in its hidden depths."
+
+2 "The Bay of Bengal is hit frequently by cyclones. The months of November and May, in particular, are dangerous in this regard."
+
+3 "Thinking is the capital, Enterprise is the way, Hard Work is the solution."
+
+4 "If You Can'T Make It Good, At Least Make It Look Good."
+5 "Heart be brave. If you cannot be brave, just go. Love's glory is not a small thing."
+6 "It is bad for a young man to sin; but it is worse for an old man to sin."
+7 "If You Are Out To Describe The Truth, Leave Elegance To The Tailor."
+
+
+8 "O man you are busy working for the world, and the world is busy trying to turn you out."
+9 "While children are struggling to be unique, the world around them is trying all means to make them look like everybody else."
+10 "These Capitalists Generally Act Harmoniously And In Concert, To Fleece The People."
+11 "Your heart is the size of an ocean. Go find yourself in its hidden depths."
+12 hello
+13 hi`,
+out.String())
 	})
 }

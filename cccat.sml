@@ -1,55 +1,43 @@
 exception NoArgs
 
-fun catWithoutNumbers(streams) =
-    case (TextIO.endOfStream(streams), streams) of
-        (true, _) => print("")
-        | (false, streams) => 
-            (
-                (case TextIO.input1(streams) of
-                    SOME c => print(String.str(c))
-                    | NONE => print("\n"));
-             catWithoutNumbers(streams)
-            )
+fun printWithNumbers(lines, counter) =
+    case (lines) of
+    (x::[]) => 
+        if x = ""
+            then print("")
+            else print(String.concat([Int.toString(counter), " ", x]))
+    |(x::y::xs) =>
+        if String.isSuffix "\n" x
+        then (print(String.concat([Int.toString(counter), " ", x])); printWithNumbers(y::xs, counter + 1))
+        else (print(String.concat([Int.toString(counter), " ", x])); print(y); printWithNumbers(xs, counter + 1))
+    |_ => print("")
 
-fun catWithNumbers(stream, acc, acc2) =
-    case (TextIO.endOfStream(stream), TextIO.input1(stream), TextIO.lookahead(stream), acc, acc2) of
-        (true, _, _, _, false) => (TextIO.closeIn(stream); print("\n"))
-        | (true, SOME c, SOME d, accc, true) =>
-                    if String.str(c) = "\n"  
-                    then (TextIO.closeIn(stream); print(String.concat([Int.toString(acc), " ", String.str(c)])))
-                    else (TextIO.closeIn(stream); print(String.str(c)))
-        | (true, SOME c, NONE, accc, true) =>
-                    (TextIO.closeIn(stream); print(String.str(c)))
-        | (false, SOME c, SOME d, accc, true) =>
-                    if String.str(c) = "\n"  
-                    then (print(String.concat([String.str(c), Int.toString(acc), " "])); catWithNumbers(stream, acc + 1, true))
-                    else (print(String.str(c)); catWithNumbers(stream, acc, true))
-        | (false, SOME c, SOME d, accc, false) =>
-                    (print(String.concat([Int.toString(acc), " ", String.str(c)])); catWithNumbers(stream, acc + 1, true))
-        | (false, SOME c, NONE, accc, true) => (print(String.str(c));catWithNumbers(stream, acc, true))
-                    | _ => print("")
+fun printWithNumbersNotEmptyLines(lines, counter) =
+    case (lines) of
+    ("\n"::xs) => (print("\n"); printWithNumbersNotEmptyLines(xs, counter))
+    |(x::[]) => 
+        if x = ""
+            then print("")
+            else print(String.concat([Int.toString(counter), " ", x]))
+    |(x::y::xs) =>
+        if String.isSuffix "\n" x
+        then (print(String.concat([Int.toString(counter), " ", x])); printWithNumbersNotEmptyLines(y::xs, counter + 1))
+        else (print(String.concat([Int.toString(counter), " ", x])); print(y); printWithNumbersNotEmptyLines(xs, counter + 1))
+    |_ => print("")
 
-fun catWithNumbersNotEmptyLines(stream, acc, acc2) =
-    case (TextIO.endOfStream(stream), TextIO.input1(stream), TextIO.lookahead(stream), acc, acc2) of
-        (true, _, _, _, false) => (TextIO.closeIn(stream); print("\n"))
-        | (true, SOME c, SOME d, accc, true) =>
-                    if String.str(c) = "\n" andalso String.str(d) = "\n"  
-                    then (TextIO.closeIn(stream); print(String.str(c)); print(String.str(d)))
-                    else if String.str(c) = "\n" 
-                    then (TextIO.closeIn(stream); print(String.concat([Int.toString(acc), " ", String.str(c), String.str(d)])))
-                    else (TextIO.closeIn(stream); print(String.str(c)); print(String.str(d)))
-        | (true, SOME c, NONE, accc, true) =>
-                    (TextIO.closeIn(stream); print(String.str(c)))
-        | (false, SOME c, SOME d, accc, true) =>
-                    if String.str(c) = "\n" andalso String.str(d) = "\n"  
-                    then (print(String.str(c)); catWithNumbersNotEmptyLines(stream, acc, true))
-                    else if String.str(c) = "\n"  
-                    then (print(String.concat([String.str(c), Int.toString(acc), " "])); catWithNumbersNotEmptyLines(stream, acc + 1, true))
-                    else (print(String.str(c)); catWithNumbersNotEmptyLines(stream, acc, true))
-        | (false, SOME c, SOME d, accc, false) =>
-                    (print(String.concat([Int.toString(acc), " ", String.str(c)])); catWithNumbersNotEmptyLines(stream, acc + 1, true))
-        | (false, SOME c, NONE, accc, true) => (print(String.str(c));catWithNumbersNotEmptyLines(stream, acc, true))
-                    | _ => print("")
+fun collectLines(streams) =
+    let 
+        fun collectALine(stream, currentLine, lines) =
+            case (TextIO.endOfStream(stream), TextIO.input1(stream), TextIO.lookahead(stream), currentLine, lines) of
+                (true, _, _, cl, ls) => (TextIO.closeIn(stream); cl::ls)
+                |(false, SOME c, _, cl, ls) =>
+                    if String.str(c) = "\n"  
+                        then collectALine(stream, "", (cl ^ String.str(c))::ls)
+                        else collectALine(stream, (cl ^ String.str(c)), ls) 
+                |(_,_,_, cl, ls) => collectALine(stream, cl, ls)
+    in
+        List.rev (List.concat (List.rev(List.map (fn (x) => collectALine(x, "", [])) streams)))
+    end
 
 fun cat() = 
     let
@@ -69,10 +57,10 @@ fun cat() =
             |x => ((List.map (fn (r) => if r = "-" then TextIO.stdIn else TextIO.openIn r) x), false, false)
     in
         if withNumbers andalso withNumbersNoEmptyLines
-            then List.app (fn (x) => catWithNumbersNotEmptyLines(x, 1, false)) streams
+            then printWithNumbersNotEmptyLines((collectLines(streams)), 1)
             else if withNumbers
-            then List.app (fn (x) => catWithNumbers(x, 1, false)) streams
-            else List.app catWithoutNumbers streams
+            then printWithNumbers((collectLines(streams)), 1)
+            else List.app (fn (x) => print(x)) (collectLines streams)
     end
 
 fun main () = cat()
